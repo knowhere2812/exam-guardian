@@ -284,7 +284,7 @@ export const questions: Question[] = [
   },
 ];
 
-export const violationSets: Record<string, ViolationEvent[]> = {
+export const violationSets = {
   "a-1": [
     {
       id: "v-1",
@@ -355,7 +355,7 @@ export const attempts: Attempt[] = [
     status: "passed",
     riskScore: 46,
     riskLevel: "medium",
-    violations: violationSets["a-1"],
+    violations: violationSets["a-1"] as ViolationEvent[],
   },
   {
     id: "a-2",
@@ -369,7 +369,7 @@ export const attempts: Attempt[] = [
     status: "in_progress",
     riskScore: 81,
     riskLevel: "high",
-    violations: violationSets["a-2"],
+    violations: violationSets["a-2"] as ViolationEvent[],
     timeRemainingMinutes: 14,
     cameraActive: true,
     faceDetected: true,
@@ -386,7 +386,7 @@ export const attempts: Attempt[] = [
     status: "in_progress",
     riskScore: 22,
     riskLevel: "low",
-    violations: violationSets["a-3"],
+    violations: violationSets["a-3"] as ViolationEvent[],
     timeRemainingMinutes: 21,
     cameraActive: true,
     faceDetected: false,
@@ -417,7 +417,7 @@ export const attempts: Attempt[] = [
     status: "failed",
     riskScore: 34,
     riskLevel: "low",
-    violations: violationSets["a-3"],
+    violations: violationSets["a-3"] as ViolationEvent[],
   },
   {
     id: "a-6",
@@ -431,7 +431,7 @@ export const attempts: Attempt[] = [
     status: "flagged",
     riskScore: 72,
     riskLevel: "high",
-    violations: violationSets["a-2"],
+    violations: violationSets["a-2"] as ViolationEvent[],
   },
 ];
 
