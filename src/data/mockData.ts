@@ -284,7 +284,7 @@ export const questions: Question[] = [
   },
 ];
 
-export const violationSets = {
+export const violationSets: Record<string, ViolationEvent[]> = {
   "a-1": [
     {
       id: "v-1",
