@@ -41,7 +41,7 @@ function RegisterPage() {
         name: form.name,
         email: form.email,
         password: form.password,
-        rollNumber: form.rollNumber || undefined,
+        ...(form.rollNumber ? { rollNumber: form.rollNumber } : {}),
       });
       navigate({ to: "/student" });
     } catch {
