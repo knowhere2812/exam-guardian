@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { violationLabels, type ViolationEvent } from "@/data/mockData";
 import { formatDateTime } from "@/utils/format";
 
-export function EvidenceViewer({ event, className }: { event?: ViolationEvent; className?: string }) {
+export function EvidenceViewer({ event, className }: { event?: ViolationEvent | undefined; className?: string | undefined }) {
   if (!event) {
     return (
       <div

@@ -10,9 +10,9 @@ export function ViolationTimeline({
   className,
 }: {
   events: ViolationEvent[];
-  onSelect?: (event: ViolationEvent) => void;
-  selectedId?: string;
-  className?: string;
+  onSelect?: ((event: ViolationEvent) => void) | undefined;
+  selectedId?: string | undefined;
+  className?: string | undefined;
 }) {
   if (events.length === 0) {
     return (
