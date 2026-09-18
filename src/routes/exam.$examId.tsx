@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { AlertTriangle, ChevronLeft, ChevronRight, Clock, Flag, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { exams, questions as allQuestions, violationLabels, type ViolationType } from "@/data/mockData";
+import { exams, questions as allQuestions, type ViolationType } from "@/data/mockData";
 import { formatClock } from "@/utils/format";
 import { WebcamPreview } from "@/features/proctoring/WebcamPreview";
 import { ProctoringStatus } from "@/features/proctoring/ProctoringStatus";
@@ -234,8 +234,4 @@ function ExamInterface() {
       ) : null}
     </div>
   );
-}
-
-function _unused() {
-  return violationLabels;
 }
