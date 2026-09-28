@@ -1,238 +1,133 @@
 # Exam Guardian
 
-Build a modern, professional Online Exam Proctoring System frontend using React + Vite + Tailwind CSS + React Router + Lucide icons + Recharts.
+Exam Guardian is a university-focused online exam proctoring platform with a clear split between frontend and backend responsibilities.
 
-This is frontend-only for now. Use mock data/local state. Do not build backend, database, or real AI models. Keep the code modular and API-ready for a future Node.js/Express + MongoDB + AI service integration.
+## Project structure
 
-Design Style
+- [frontend](frontend): React + Vite + TypeScript + Tailwind application
+- [backend](backend): Express + TypeScript API and auth server
+- [prisma](prisma): Prisma schema and database modeling
+- [task.md](task.md): delivery checklist for backend integration work
 
-Create a clean, premium EdTech/SaaS UI focused on security, trust, simplicity, and academic professionalism.
+## Tech stack
 
-Light theme with white/light-gray backgrounds
+### Frontend
 
-One primary accent color
+- React
+- Vite
+- TypeScript
+- TanStack Router
+- TanStack Query
+- Tailwind CSS
+- Recharts
+- Lucide icons
 
-Subtle shadows and borders
+### Backend
 
-Modern typography
+- Node.js
+- Express
+- TypeScript
+- Prisma ORM
+- PostgreSQL / Neon
+- JWT auth
+- bcrypt password hashing
+- CORS + validation middleware
 
-Rounded cards and buttons
+## Current status
 
-Minimal animations
+The project already includes:
 
-Responsive desktop/tablet/mobile design
+- a working frontend app shell and route structure under [frontend/src](frontend/src)
+- a backend API foundation under [backend/src](backend/src)
+- Prisma models under [prisma/schema.prisma](prisma/schema.prisma)
+- JWT-based authentication scaffolding and backend-ready API client integration
 
-Use green for success, amber for warnings, red only for violations/errors
+## Local development
 
-Avoid excessive gradients, colors, and animations
+### 1) Frontend
 
-User Roles
-
-Student
-
-Pages:
-
-Login / Register
-
-Dashboard
-
-My Exams
-
-Exam Details
-
-System Check
-
-Exam Interface
-
-Exam Result
-
-Proctoring Report
-
-Profile
-
-Student dashboard should show upcoming exams, recent results, average score, and exam status.
-
-Admin/Teacher
-
-Pages:
-
-Dashboard
-
-Exams
-
-Create/Edit Exam
-
-Question Bank
-
-Students
-
-Exam Attempts
-
-Results
-
-Proctoring
-
-Analytics
-
-Settings
-
-Admin dashboard should show total students, active/completed exams, flagged attempts, performance charts, and recent proctoring alerts.
-
-Exam Interface
-
-Create a distraction-free exam screen without the normal sidebar.
-
-Include:
-
-Exam title
-
-Countdown timer
-
-Question number/progress
-
-MCQ question and options
-
-Previous/Next buttons
-
-Mark for Review
-
-Question navigator
-
-Answered/unanswered/review states
-
-Submit confirmation modal
-
-Proctoring UI
-
-Add a compact Proctoring Status panel showing:
-
-Camera: Active
-
-Microphone: Active
-
-Face: Detected
-
-Browser: Secure
-
-Monitoring: Active
-
-Create reusable components:
-
-WebcamPreview
-
-ProctoringStatus
-
-ViolationAlert
-
-ViolationTimeline
-
-RiskScore
-
-EvidenceViewer
-
-Use mock proctoring events such as:
-
-Tab switch
-
-Face not detected
-
-Multiple faces
-
-Fullscreen exit
-
-Do not accuse the student of cheating; display these as potential violations.
-
-Admin Proctoring
-
-Create a monitoring/review interface showing:
-
-Student
-
-Exam
-
-Time remaining
-
-Camera/face status
-
-Risk level
-
-Violation timeline
-
-Mock evidence
-
-Risk score
-
-Use risk levels:
-
-Normal / Low / Medium / High
-
-Analytics
-
-Use Recharts for:
-
-Score distribution
-
-Pass rate
-
-Exam performance
-
-Violation distribution
-
-Risk-level distribution
-
-Frontend Structure
-
-Keep components modular:
-
-src/
-
-components/
-
-layouts/
-
-pages/
-
-features/
-
-auth/
-
-student/
-
-admin/
-
-exam/
-
-proctoring/
-
-services/
-
-hooks/
-
-utils/
-
-data/
-
-Create mock authentication with Student/Admin roles and make the service layer ready for future Axios API integration.
-
-The final UI should feel like a production-quality university examination platform with an AI-ready proctoring experience, not a generic dashboard template.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/e990cb3e-ada6-4eda-864f-41e10a898483).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+From the repository root:
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+cd frontend
+npm install
 npm run dev
 ```
+
+The frontend runs with Vite and is configured to be API-ready.
+
+### 2) Neon database and backend
+
+Create a PostgreSQL project in Neon and copy the connection strings from its dashboard. Put the pooled connection string in `DATABASE_URL` and the direct, non-pooler string in `DIRECT_URL` in `backend/.env`. Keep both URLs private and do not commit `.env`. If `DIRECT_URL` is omitted, the Prisma command wrapper derives the direct Neon hostname in memory from `DATABASE_URL`.
+
+From the repository root:
+
+```sh
+npm install
+npm run db:generate
+npm run db:push
+npm run dev:api
+```
+
+The backend defaults to port `4000` and exposes a health endpoint at:
+
+```sh
+http://localhost:4000/api/health
+```
+
+`npm run db:push` creates or updates the tables in the Neon database specified by `DIRECT_URL`. The API stores users, exams, and attempts there; it does not use seeded demo accounts or sample exam records.
+
+## Environment variables
+
+Use `backend/.env` for API secrets and database values. The API loads it explicitly, and the Prisma scripts load it before running schema operations. A placeholder Neon configuration is available at [.env.example](.env.example).
+
+Required values include:
+
+- `DATABASE_URL`
+- `DIRECT_URL`
+- `PORT`
+- `FRONTEND_ORIGIN`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+- `VITE_API_URL`
+
+## Frontend/backend responsibilities
+
+### Frontend responsibilities
+
+- UI and page flows
+- role-based screens for student/admin
+- exam and proctoring UX
+- API-backed service layer integration
+- charts, dashboards, and user interactions
+
+### Backend responsibilities
+
+- authentication and authorization
+- request validation
+- centralized error handling
+- Prisma database access
+- API endpoints for exams, attempts, users, and proctoring
+- server-side enforcement of secure business rules
+
+## Notes
+
+This repo is intentionally structured so the frontend and backend are separately categorized, which makes development and future expansion easier.
+
+The project still follows the planned architecture:
+
+Frontend -> Services -> API -> Express -> Prisma -> PostgreSQL
+
+and keeps AI/proctoring modules separate from the core application backend for future extension.
+
+## Build verification
+
+The project has been validated with:
+
+```sh
+npx tsx --test backend/src/lib/auth.test.ts
+npm run build
+npm run build:api
+```
+
+These commands confirm the JWT auth logic and the frontend/backend builds are working in the current repo state.
