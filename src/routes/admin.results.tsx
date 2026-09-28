@@ -48,11 +48,11 @@ function AdminResults() {
         <div className="mt-4 h-60">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={analytics.scoreDistribution}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-              <XAxis dataKey="band" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid hsl(var(--border))" }} />
-              <Bar dataKey="students" name="Students" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+              <XAxis dataKey="band" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
+              <YAxis tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
+              <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid var(--border)" }} />
+              <Bar dataKey="students" name="Students" fill="var(--primary)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

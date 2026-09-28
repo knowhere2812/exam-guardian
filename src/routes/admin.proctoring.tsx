@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/proctoring")({
       { property: "og:description", content: "Review live exam sessions, risk signals and evidence." },
     ],
   }),
-  component: AdminProctoring;
+  component: AdminProctoring,
 });
 
 function AdminProctoring() {

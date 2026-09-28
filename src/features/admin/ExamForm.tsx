@@ -73,15 +73,15 @@ export function ExamForm({ exam }: { exam?: Exam | undefined }) {
             </select>
           </div>
           <label className="flex items-center gap-2.5 text-sm text-foreground">
-            <input type="checkbox" defaultChecked={exam?.proctored ?? true} className="size-4 accent-[hsl(var(--primary))]" />
+            <input type="checkbox" defaultChecked={exam?.proctored ?? true} className="size-4 accent-primary" />
             Enable AI-assisted proctoring
           </label>
           <label className="flex items-center gap-2.5 text-sm text-foreground">
-            <input type="checkbox" defaultChecked className="size-4 accent-[hsl(var(--primary))]" />
+            <input type="checkbox" defaultChecked className="size-4 accent-primary" />
             Shuffle question order
           </label>
           <label className="flex items-center gap-2.5 text-sm text-foreground">
-            <input type="checkbox" defaultChecked className="size-4 accent-[hsl(var(--primary))]" />
+            <input type="checkbox" defaultChecked className="size-4 accent-primary" />
             Auto-submit when timer ends
           </label>
         </div>
