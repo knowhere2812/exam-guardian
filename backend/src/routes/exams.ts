@@ -6,18 +6,42 @@ import { ApiError } from "../middleware/errors.js";
 import { requireAuth } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
-const examInputSchema = z.object({
-  title: z.string().trim().min(1).max(120),
-  code: z.string().trim().min(1).max(12),
-  subject: z.string().trim().min(1).max(60),
-  startsAt: z.string().datetime().nullable(),
-  durationMinutes: z.number().int().min(5).max(300),
-  totalMarks: z.number().int().min(1).max(500),
-  passingMarks: z.number().int().min(1).max(500),
-  instructions: z.array(z.string().trim().min(1)).max(20),
-  status: z.enum(["draft", "upcoming", "live", "completed"]),
-  proctored: z.boolean(),
+const questionInputSchema = z.object({
+  text: z.string().trim().min(1).max(2000),
+  options: z.array(z.string().trim().min(1).max(500)).length(4),
+  correctIndex: z.number().int().min(0).max(3),
+  marks: z.number().int().min(1).max(500),
+  difficulty: z.enum(["easy", "medium", "hard"]),
+  topic: z.string().trim().max(100),
 });
+
+const examInputSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    code: z.string().trim().min(1).max(12),
+    subject: z.string().trim().min(1).max(60),
+    startsAt: z.string().datetime().nullable(),
+    durationMinutes: z.number().int().min(5).max(300),
+    totalMarks: z.number().int().min(1).max(500),
+    passingMarks: z.number().int().min(1).max(500),
+    instructions: z.array(z.string().trim().min(1)).max(20),
+    status: z.enum(["draft", "upcoming", "live", "completed"]),
+    proctored: z.boolean(),
+    questions: z.array(questionInputSchema).min(1).max(200),
+  })
+  .superRefine((exam, context) => {
+    const questionMarks = exam.questions.reduce(
+      (total, question) => total + question.marks,
+      0,
+    );
+    if (questionMarks !== exam.totalMarks) {
+      context.addIssue({
+        code: "custom",
+        path: ["questions"],
+        message: "Question marks must add up to the exam total marks",
+      });
+    }
+  });
 
 type RequestUser = { id: string; role: string };
 
@@ -113,6 +137,13 @@ function examData(input: z.infer<typeof examInputSchema>) {
   };
 }
 
+function questionData(questions: z.infer<typeof questionInputSchema>[]) {
+  return questions.map((question) => ({
+    ...question,
+    topic: question.topic || null,
+  }));
+}
+
 export const examsRouter = Router();
 
 examsRouter.get("/", requireAuth, async (req, res, next) => {
@@ -189,13 +220,21 @@ examsRouter.get("/:id/questions", requireAuth, async (req, res, next) => {
         examId: true,
         text: true,
         options: true,
+        correctIndex: true,
         marks: true,
         difficulty: true,
         topic: true,
       },
       orderBy: { createdAt: "asc" },
     });
-    res.json(questions);
+    res.json(
+      questions.map((question) => ({
+        ...question,
+        ...(user.role === "ADMIN"
+          ? { correctIndex: question.correctIndex }
+          : {}),
+      })),
+    );
   } catch (error) {
     next(error);
   }
@@ -209,7 +248,11 @@ examsRouter.post(
     try {
       const user = requireAdmin(req);
       const exam = await prisma.exam.create({
-        data: { ...examData(req.body), createdById: user.id },
+        data: {
+          ...examData(req.body),
+          createdById: user.id,
+          questions: { create: questionData(req.body.questions) },
+        },
         include: { _count: { select: { questions: true, attempts: true } } },
       });
       res.status(201).json(toApiExam(exam));
@@ -233,12 +276,25 @@ examsRouter.put(
       const user = requireAdmin(req);
       const existing = await prisma.exam.findFirst({
         where: { id: getExamId(req), createdById: user.id },
+        include: { _count: { select: { attempts: true } } },
       });
       if (!existing) throw new ApiError(404, "Exam not found");
+      if (existing._count.attempts > 0) {
+        throw new ApiError(
+          409,
+          "Questions cannot be changed after students start this exam",
+        );
+      }
 
       const exam = await prisma.exam.update({
         where: { id: existing.id },
-        data: examData(req.body),
+        data: {
+          ...examData(req.body),
+          questions: {
+            deleteMany: {},
+            create: questionData(req.body.questions),
+          },
+        },
         include: { _count: { select: { questions: true, attempts: true } } },
       });
       res.json(toApiExam(exam));

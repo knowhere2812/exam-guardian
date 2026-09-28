@@ -12,6 +12,16 @@ export interface ExamInput {
   instructions: string[];
   status: ExamStatus;
   proctored: boolean;
+  questions: ExamQuestionInput[];
+}
+
+export interface ExamQuestionInput {
+  text: string;
+  options: string[];
+  correctIndex: number;
+  marks: number;
+  difficulty: "easy" | "medium" | "hard";
+  topic: string;
 }
 
 export interface StudentAttempt {
