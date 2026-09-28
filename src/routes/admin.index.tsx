@@ -54,7 +54,7 @@ function AdminDashboard() {
                 <YAxis tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
                 <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid var(--border)" }} />
                 <Bar dataKey="average" name="Average" fill="var(--primary)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="highest" name="Highest" fill="hsl(color-mix(in oklab, var(--primary) 35%, transparent))" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="highest" name="Highest" fill="color-mix(in oklab, var(--primary) 35%, transparent)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
