@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthLayout } from "./index";
+import { AuthLayout } from "@/components/layouts/AuthLayout";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -81,7 +81,7 @@ function RegisterPage() {
 
   return (
     <AuthLayout>
-      <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8 lg:mt-0">
+      <div>
         <h1 className="font-display text-2xl font-semibold text-foreground">Create your account</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Students register here. Faculty accounts are issued by the exam office.
@@ -114,7 +114,7 @@ function RegisterPage() {
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
           Already registered?{" "}
-          <Link to="/" className="font-medium text-primary hover:underline">
+          <Link to="/login" className="font-medium text-emerald-700 hover:underline">
             Sign in
           </Link>
         </p>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthLayout } from "./index";
+import { AuthLayout } from "@/components/layouts/AuthLayout";
 
 export const Route = createFileRoute("/register_/admin")({
   head: () => ({
@@ -86,7 +86,7 @@ function RegisterAdminPage() {
 
   return (
     <AuthLayout>
-      <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8 lg:mt-0">
+      <div>
         <h1 className="font-display text-2xl font-semibold text-foreground">
           Create your teacher account
         </h1>
@@ -121,13 +121,13 @@ function RegisterAdminPage() {
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
           Already registered?{" "}
-          <Link to="/" className="font-medium text-primary hover:underline">
+          <Link to="/login" className="font-medium text-emerald-700 hover:underline">
             Sign in
           </Link>
         </p>
         <p className="mt-3 text-center text-sm text-muted-foreground">
           Need a student account?{" "}
-          <Link to="/register" className="font-medium text-primary hover:underline">
+          <Link to="/register" className="font-medium text-emerald-700 hover:underline">
             Create one here
           </Link>
         </p>

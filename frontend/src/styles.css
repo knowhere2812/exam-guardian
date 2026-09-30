@@ -171,8 +171,31 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.015em;
   }
+}
+
+.auth-backdrop {
+  background:
+    radial-gradient(ellipse at 8% 8%, oklch(0.94 0.08 165 / 78%), transparent 34%),
+    radial-gradient(ellipse at 94% 86%, oklch(0.92 0.09 158 / 72%), transparent 36%),
+    linear-gradient(135deg, oklch(0.99 0.01 160), oklch(0.98 0.015 175) 52%, oklch(0.99 0.01 150));
+}
+
+.auth-backdrop::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background-image: radial-gradient(oklch(0.78 0.12 165 / 50%) 1px, transparent 1px);
+  background-position: 1rem 1rem;
+  background-size: 18px 18px;
+  content: "";
+  mask-image: linear-gradient(135deg, black, transparent 45%, transparent 60%, black);
+  opacity: 0.35;
+  pointer-events: none;
 }

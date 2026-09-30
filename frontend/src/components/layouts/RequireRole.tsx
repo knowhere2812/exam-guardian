@@ -15,7 +15,7 @@ export function RequireRole({ role, children }: { role: Role; children: ReactNod
 
   useEffect(() => {
     if (!ready) return;
-    if (!user) navigate({ to: "/" });
+    if (!user) navigate({ to: "/login" });
     else if (user.role !== role) navigate({ to: user.role === "admin" ? "/admin" : "/student" });
   }, [ready, user, role, navigate]);
 
