@@ -96,8 +96,13 @@ export function ExamForm({ exam }: { exam?: Exam | undefined }) {
       }
       if (exam) await examService.updateExam(exam.id, payload);
       else await examService.createExam(payload);
-      await queryClient.invalidateQueries({ queryKey: ["exams"] });
-      if (exam) await queryClient.invalidateQueries({ queryKey: ["questions", exam.id] });
+      void queryClient.invalidateQueries({ queryKey: ["exams"], refetchType: "none" });
+      if (exam) {
+        void queryClient.invalidateQueries({
+          queryKey: ["questions", exam.id],
+          refetchType: "none",
+        });
+      }
       navigate({ to: "/admin/exams" });
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save this exam.");
