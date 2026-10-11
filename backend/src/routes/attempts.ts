@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { AttemptStatus, ExamStatus, Role } from "@prisma/client";
+import { AttemptStatus, ExamStatus, ViolationType } from "@prisma/client";
 import type { Request } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
@@ -16,6 +16,13 @@ const answersSchema = z.object({
       }),
     )
     .max(500),
+});
+const proctorEventSchema = z.object({
+  type: z.nativeEnum(ViolationType),
+});
+const proctorEventsSchema = z.object({
+  sessionId: z.string().min(1),
+  events: z.array(proctorEventSchema).min(1).max(100),
 });
 
 function routeId(req: Request): string {
@@ -193,15 +200,107 @@ attemptsRouter.post("/:id/submit", requireAuth, async (req, res, next) => {
           : 0),
       0,
     );
-    const submitted = await prisma.attempt.update({
-      where: { id: attempt.id },
-      data: { score, submittedAt: new Date(), status: AttemptStatus.SUBMITTED },
+    const submittedAt = new Date();
+    const submitted = await prisma.$transaction(async (transaction) => {
+      const updatedAttempt = await transaction.attempt.update({
+        where: { id: attempt.id },
+        data: { score, submittedAt, status: AttemptStatus.SUBMITTED },
+      });
+      await transaction.proctoringSession.updateMany({
+        where: { attemptId: attempt.id, endedAt: null },
+        data: { endedAt: submittedAt },
+      });
+      return updatedAttempt;
     });
     res.json({ id: submitted.id, score, totalMarks: attempt.exam.totalMarks });
   } catch (error) {
     next(error);
   }
 });
+
+attemptsRouter.post(
+  "/:id/proctoring/session",
+  requireAuth,
+  async (req, res, next) => {
+    try {
+      const user = (req as Request & { user?: { id: string; role: string } })
+        .user;
+      if (!user) throw new ApiError(401, "Authentication required");
+      if (user.role !== "STUDENT")
+        throw new ApiError(403, "Student access required");
+
+      const attempt = await prisma.attempt.findFirst({
+        where: { id: routeId(req), studentId: user.id },
+        include: { exam: true },
+      });
+      if (!attempt) throw new ApiError(404, "Attempt not found");
+      if (
+        attempt.status !== AttemptStatus.IN_PROGRESS ||
+        attempt.expiresAt <= new Date()
+      ) {
+        throw new ApiError(409, "This attempt is no longer being proctored");
+      }
+      if (!attempt.exam.proctored)
+        throw new ApiError(409, "Proctoring is not required for this exam");
+
+      const activeSession = await prisma.proctoringSession.findFirst({
+        where: { attemptId: attempt.id, endedAt: null },
+        orderBy: { startedAt: "desc" },
+      });
+      const session =
+        activeSession ??
+        (await prisma.proctoringSession.create({
+          data: { attemptId: attempt.id },
+        }));
+      res.status(activeSession ? 200 : 201).json({ id: session.id });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+attemptsRouter.post(
+  "/:id/proctoring/events",
+  requireAuth,
+  async (req, res, next) => {
+    try {
+      const user = (req as Request & { user?: { id: string; role: string } })
+        .user;
+      if (!user) throw new ApiError(401, "Authentication required");
+      if (user.role !== "STUDENT")
+        throw new ApiError(403, "Student access required");
+      const { sessionId, events } = proctorEventsSchema.parse(req.body);
+
+      const attempt = await prisma.attempt.findFirst({
+        where: { id: routeId(req), studentId: user.id },
+        select: { id: true, status: true, expiresAt: true },
+      });
+      if (!attempt) throw new ApiError(404, "Attempt not found");
+      if (
+        attempt.status !== AttemptStatus.IN_PROGRESS ||
+        attempt.expiresAt <= new Date()
+      ) {
+        throw new ApiError(
+          409,
+          "This attempt is no longer accepting proctoring events",
+        );
+      }
+      const session = await prisma.proctoringSession.findFirst({
+        where: { id: sessionId, attemptId: attempt.id, endedAt: null },
+        select: { id: true },
+      });
+      if (!session)
+        throw new ApiError(404, "Active proctoring session not found");
+
+      const result = await prisma.proctoringEvent.createMany({
+        data: events.map(({ type }) => ({ sessionId: session.id, type })),
+      });
+      res.status(201).json({ saved: result.count });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 attemptsRouter.get("/", requireAuth, async (req, res, next) => {
   try {

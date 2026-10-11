@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CalendarClock, CheckCircle2, Clock, FileText, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/features/shared/PageHeader";
 import { StatusBadge } from "@/features/shared/StatusBadge";
-import { ProctoringStatus } from "@/features/proctoring/ProctoringStatus";
 import { examService } from "@/services/examService";
 import { formatDateTime } from "@/utils/format";
 
@@ -132,24 +131,26 @@ function ExamDetails() {
               <ShieldCheck className="size-4" /> How proctoring works
             </h2>
             <p className="mt-2 text-sm text-foreground/90">
-              During the exam we record camera and microphone activity, face presence, tab focus and
-              fullscreen state. Anything unusual is logged as a <strong>potential violation</strong>{" "}
-              and reviewed by a human invigilator — it is never treated as proof of misconduct on
-              its own.
+              During a proctored exam, your camera and microphone are monitored in this browser. The
+              app logs face, tab-focus, fullscreen and loud-sound events, but does not record or
+              upload audio or video. These are <strong>potential violations</strong> for a human
+              invigilator to review, never proof of misconduct on their own.
             </p>
           </section>
         </div>
 
         <aside className="space-y-6">
-          <ProctoringStatus
-            checks={{
-              camera: true,
-              microphone: true,
-              face: true,
-              browser: true,
-              monitoring: exam.proctored,
-            }}
-          />
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <ShieldCheck className="size-4" />
+              {exam.proctored ? "Proctoring required" : "Proctoring not required"}
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {exam.proctored
+                ? "Camera and microphone access will be checked when you start the exam."
+                : "This exam does not require camera or microphone monitoring."}
+            </p>
+          </div>
           <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
             <h3 className="text-sm font-semibold text-foreground">Enrolment</h3>
             <p className="mt-2 text-sm text-muted-foreground">

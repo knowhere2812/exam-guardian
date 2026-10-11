@@ -75,6 +75,13 @@ export interface SubmittedAttempt {
   totalMarks: number;
 }
 
+export type ProctoringEventType =
+  "TAB_SWITCH" | "FACE_NOT_DETECTED" | "MULTIPLE_FACES" | "FULLSCREEN_EXIT" | "AUDIO_DETECTED";
+
+export interface ProctoringSession {
+  id: string;
+}
+
 export const examService = {
   listExams(): Promise<Exam[]> {
     return fetchJson<Exam[]>("/exams");
@@ -123,6 +130,27 @@ export const examService = {
     return fetchJson<SubmittedAttempt>(`/attempts/${encodeURIComponent(attemptId)}/submit`, {
       method: "POST",
     });
+  },
+
+  startProctoringSession(attemptId: string): Promise<ProctoringSession> {
+    return fetchJson<ProctoringSession>(
+      `/attempts/${encodeURIComponent(attemptId)}/proctoring/session`,
+      { method: "POST" },
+    );
+  },
+
+  recordProctoringEvent(
+    attemptId: string,
+    sessionId: string,
+    type: ProctoringEventType,
+  ): Promise<{ saved: number }> {
+    return fetchJson<{ saved: number }>(
+      `/attempts/${encodeURIComponent(attemptId)}/proctoring/events`,
+      {
+        method: "POST",
+        body: JSON.stringify({ sessionId, events: [{ type }] }),
+      },
+    );
   },
 
   getExam(id: string): Promise<Exam> {

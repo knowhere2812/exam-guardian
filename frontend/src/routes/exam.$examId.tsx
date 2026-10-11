@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatClock } from "@/utils/format";
 import { examService, type ActiveExamAttempt } from "@/services/examService";
+import { ExamProctoringMonitor } from "@/features/proctoring/ExamProctoringMonitor";
 
 export const Route = createFileRoute("/exam/$examId")({
   head: () => ({
@@ -50,6 +51,9 @@ function ExamInterface() {
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [proctoringWarning, setProctoringWarning] = useState("");
+  const [proctoringStream, setProctoringStream] = useState<MediaStream | null>(null);
+  const [proctoringSessionId, setProctoringSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!attempt) return;
@@ -113,13 +117,54 @@ function ExamInterface() {
   const startAttempt = async () => {
     setBusy(true);
     setError("");
+    setProctoringWarning("");
+    let acquiredStream: MediaStream | null = null;
+    let startedSuccessfully = false;
     try {
+      let fullscreenRequest: Promise<void> | undefined;
+      if (exam.proctored) {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error("Camera and microphone access requires HTTPS or localhost.");
+        }
+        if (document.documentElement.requestFullscreen) {
+          try {
+            fullscreenRequest = document.documentElement.requestFullscreen();
+          } catch {
+            setProctoringWarning(
+              "Fullscreen could not be activated. Keep the exam tab focused and use a browser that allows fullscreen.",
+            );
+          }
+        } else {
+          setProctoringWarning("Fullscreen monitoring is not supported by this browser.");
+        }
+        acquiredStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: true,
+        });
+      }
+
       const started = await examService.startAttempt(examId);
+      if (exam.proctored) {
+        const session = await examService.startProctoringSession(started.id);
+        setProctoringSessionId(session.id);
+        setProctoringStream(acquiredStream);
+        if (fullscreenRequest) {
+          await fullscreenRequest.catch(() => {
+            setProctoringWarning(
+              "Fullscreen could not be activated. Keep the exam tab focused and use a browser that allows fullscreen.",
+            );
+          });
+        }
+      }
       setAttempt(started);
       setAnswers(started.answers);
+      startedSuccessfully = true;
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : "Could not start this exam.");
     } finally {
+      if (!startedSuccessfully) {
+        acquiredStream?.getTracks().forEach((track) => track.stop());
+      }
       setBusy(false);
     }
   };
@@ -160,9 +205,15 @@ function ExamInterface() {
             {exam.code} · {paper.length} questions · {exam.durationMinutes} minutes
           </p>
           <p className="mt-5 text-sm text-foreground">
-            Your start time and deadline will be recorded by the server. Answers are saved as you
-            work.
+            {exam.proctored
+              ? "Camera and microphone access will be requested before the attempt begins. Media stays in your browser; proctoring events are logged for review."
+              : "Your start time and deadline will be recorded by the server. Answers are saved as you work."}
           </p>
+          {proctoringWarning ? (
+            <p className="mt-4 rounded-xl border border-warning/30 bg-warning-soft px-3 py-2 text-sm text-warning-foreground">
+              {proctoringWarning}
+            </p>
+          ) : null}
           {error ? (
             <p className="mt-4 rounded-xl border border-destructive/30 bg-danger-soft px-3 py-2 text-sm text-destructive">
               {error}
@@ -277,6 +328,18 @@ function ExamInterface() {
         </section>
 
         <aside className="space-y-4">
+          {proctoringWarning ? (
+            <p className="rounded-xl border border-warning/30 bg-warning-soft px-3 py-2 text-sm text-warning-foreground">
+              {proctoringWarning}
+            </p>
+          ) : null}
+          {exam.proctored && proctoringStream && proctoringSessionId ? (
+            <ExamProctoringMonitor
+              attemptId={attempt.id}
+              sessionId={proctoringSessionId}
+              stream={proctoringStream}
+            />
+          ) : null}
           <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
             <h2 className="text-sm font-semibold text-foreground">Question navigator</h2>
             <div className="mt-3 grid grid-cols-6 gap-2">
